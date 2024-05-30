@@ -18,7 +18,12 @@ class InfoChangedScreen extends StatelessWidget {
       body: Center(
         child: AlertDialog(
           backgroundColor: Colors.white,
-          title: Center(child: Text('정보가 변경되었습니다.')),
+          title: Center(
+            child: Text(
+              '정보가 변경되었습니다.',
+              style: TextStyle(fontSize: 16), // 텍스트 크기 조정
+            ),
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
           ),
@@ -27,12 +32,12 @@ class InfoChangedScreen extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Divider(color: Colors.grey),
+              Divider(color: Colors.grey, thickness: 1), // 구분선 두께 조정
               Center(
                 child: TextButton(
                   child: Text(
                     '확인',
-                    style: TextStyle(color: Colors.blue, fontSize: 18),
+                    style: TextStyle(color: Colors.blue, fontSize: 16), // 버튼 텍스트 크기 조정
                   ),
                   onPressed: () {
                     onConfirmed();
@@ -41,6 +46,7 @@ class InfoChangedScreen extends StatelessWidget {
               ),
             ],
           ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0), // AlertDialog 패딩 조정
         ),
       ),
     );

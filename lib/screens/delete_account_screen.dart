@@ -16,7 +16,12 @@ class DeleteAccountScreen extends StatelessWidget {
       body: Center(
         child: AlertDialog(
           backgroundColor: Colors.white, // AlertDialog 배경색 흰색으로 설정
-          title: Center(child: Text('정말 탈퇴하시겠습니까?')),
+          title: Center(
+            child: Text(
+              '정말 탈퇴하시겠습니까?',
+              style: TextStyle(fontSize: 16), // 텍스트 크기 조정
+            ),
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
           ),
@@ -25,16 +30,15 @@ class DeleteAccountScreen extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Divider(color: Colors.grey), // 제목과 버튼 사이의 구분선
+              Divider(color: Colors.grey, thickness: 1), // 제목과 버튼 사이의 구분선, 두께 조정
               IntrinsicHeight(
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Expanded(
                       child: TextButton(
                         child: Text(
                           '예',
-                          style: TextStyle(color: Colors.red, fontSize: 18),
+                          style: TextStyle(color: Colors.red, fontSize: 16), // 버튼 텍스트 크기 조정
                         ),
                         onPressed: () {
                           Navigator.pushAndRemoveUntil(
@@ -45,12 +49,12 @@ class DeleteAccountScreen extends StatelessWidget {
                         },
                       ),
                     ),
-                    VerticalDivider(color: Colors.grey), // 버튼들 사이의 구분선
+                    VerticalDivider(color: Colors.grey, thickness: 1), // 버튼들 사이의 구분선, 두께 조정
                     Expanded(
                       child: TextButton(
                         child: Text(
                           '아니오',
-                          style: TextStyle(color: Colors.blue, fontSize: 18),
+                          style: TextStyle(color: Colors.blue, fontSize: 16), // 버튼 텍스트 크기 조정
                         ),
                         onPressed: () {
                           Navigator.pop(context);
@@ -62,6 +66,7 @@ class DeleteAccountScreen extends StatelessWidget {
               ),
             ],
           ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0), // AlertDialog 패딩 조정
         ),
       ),
     );

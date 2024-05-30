@@ -16,7 +16,12 @@ class LogoutScreen extends StatelessWidget {
       body: Center(
         child: AlertDialog(
           backgroundColor: Colors.white, // AlertDialog 배경색 흰색으로 설정
-          title: Center(child: Text('정말 로그아웃 하시겠습니까?')),
+          title: Center(
+            child: Text(
+              '정말 로그아웃 하시겠습니까?',
+              style: TextStyle(fontSize: 16), // 텍스트 크기 조정
+            ),
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
           ),
@@ -34,7 +39,7 @@ class LogoutScreen extends StatelessWidget {
                       child: TextButton(
                         child: Text(
                           '예',
-                          style: TextStyle(color: Colors.red, fontSize: 18),
+                          style: TextStyle(color: Colors.red, fontSize: 16), // 버튼 텍스트 크기 조정
                         ),
                         onPressed: () {
                           Navigator.pushAndRemoveUntil(
@@ -50,7 +55,7 @@ class LogoutScreen extends StatelessWidget {
                       child: TextButton(
                         child: Text(
                           '아니오',
-                          style: TextStyle(color: Colors.blue, fontSize: 18),
+                          style: TextStyle(color: Colors.blue, fontSize: 16), // 버튼 텍스트 크기 조정
                         ),
                         onPressed: () {
                           Navigator.pop(context);
@@ -62,6 +67,7 @@ class LogoutScreen extends StatelessWidget {
               ),
             ],
           ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0), // AlertDialog 패딩 조정
         ),
       ),
     );
