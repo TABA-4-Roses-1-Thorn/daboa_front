@@ -38,6 +38,7 @@ class HelpScreen extends StatelessWidget {
                 // 고객센터/FAQ 화면으로 이동
               },
             ),
+            Divider(color: Colors.grey),
           ],
         ),
       ),
