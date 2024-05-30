@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'search_screen.dart';
 import 'cctv_view_screen.dart';
 import 'home_screen.dart';
@@ -26,19 +27,6 @@ class _DataScreenState extends State<DataScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
-              ),
-            ),
-            SizedBox(height: 16),
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -215,22 +203,29 @@ class _DataScreenState extends State<DataScreen> {
         ),
         SizedBox(height: 8),
         Expanded(
-          child: Row(
-            children: List.generate(
-              12,
-                  (index) => Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text('15'),
-                    Container(
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              barGroups: List.generate(12, (index) {
+                return BarChartGroupData(
+                  x: index,
+                  barRods: [
+                    BarChartRodData(
+                      y: index == 11 ? 15 : 12,
+                      colors: [index == 11 ? Colors.grey : Colors.grey[300]!],
                       width: 20,
-                      height: 80,
-                      color: index == 11 ? Colors.grey : Colors.grey[300],
                     ),
-                    SizedBox(height: 4),
-                    Text('${index + 1}월'),
                   ],
+                );
+              }),
+              borderData: FlBorderData(show: false),
+              titlesData: FlTitlesData(
+                leftTitles: SideTitles(showTitles: false),
+                bottomTitles: SideTitles(
+                  showTitles: true,
+                  getTitles: (double value) {
+                    return '${value.toInt() + 1}월';
+                  },
                 ),
               ),
             ),
@@ -303,22 +298,29 @@ class _DataScreenState extends State<DataScreen> {
         ),
         SizedBox(height: 8),
         Expanded(
-          child: Row(
-            children: List.generate(
-              5,
-                  (index) => Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text('15'),
-                    Container(
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              barGroups: List.generate(5, (index) {
+                return BarChartGroupData(
+                  x: index,
+                  barRods: [
+                    BarChartRodData(
+                      y: index == 4 ? 15 : 12,
+                      colors: [index == 4 ? Colors.grey : Colors.grey[300]!],
                       width: 20,
-                      height: 80,
-                      color: index == 4 ? Colors.grey : Colors.grey[300],
                     ),
-                    SizedBox(height: 4),
-                    Text('주 ${index + 1}'),
                   ],
+                );
+              }),
+              borderData: FlBorderData(show: false),
+              titlesData: FlTitlesData(
+                leftTitles: SideTitles(showTitles: false),
+                bottomTitles: SideTitles(
+                  showTitles: true,
+                  getTitles: (double value) {
+                    return '주 ${value.toInt() + 1}';
+                  },
                 ),
               ),
             ),
@@ -391,22 +393,29 @@ class _DataScreenState extends State<DataScreen> {
         ),
         SizedBox(height: 8),
         Expanded(
-          child: Row(
-            children: List.generate(
-              7,
-                  (index) => Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text('15'),
-                    Container(
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              barGroups: List.generate(7, (index) {
+                return BarChartGroupData(
+                  x: index,
+                  barRods: [
+                    BarChartRodData(
+                      y: index == 6 ? 15 : 12,
+                      colors: [index == 6 ? Colors.grey : Colors.grey[300]!],
                       width: 20,
-                      height: 80,
-                      color: index == 6 ? Colors.grey : Colors.grey[300],
                     ),
-                    SizedBox(height: 4),
-                    Text(['월', '화', '수', '목', '금', '토', '일'][index]),
                   ],
+                );
+              }),
+              borderData: FlBorderData(show: false),
+              titlesData: FlTitlesData(
+                leftTitles: SideTitles(showTitles: false),
+                bottomTitles: SideTitles(
+                  showTitles: true,
+                  getTitles: (double value) {
+                    return ['월', '화', '수', '목', '금', '토', '일'][value.toInt()];
+                  },
                 ),
               ),
             ),
