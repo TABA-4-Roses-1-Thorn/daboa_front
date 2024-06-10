@@ -1,4 +1,3 @@
-// screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'data_screen.dart';
 import 'settings_screen.dart';
@@ -14,6 +13,7 @@ class HomeScreen extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
         child: Column(
           children: [
+            SizedBox(height: 20), // 아이콘을 아래로 내리기 위한 여백 추가
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -48,16 +48,16 @@ class HomeScreen extends StatelessWidget {
             Spacer(),
             Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                'DABOA',
-                style: TextStyle(
-                  fontSize: 50,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[900], // 남색
-                ),
+              child: Image.asset(
+                'assets/icons/daboa.png',
+                height: 100, // 이미지 높이 설정
+                width: 200, // 이미지 너비 설정
+                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                  return Text('Image not found');
+                },
               ),
             ),
-            SizedBox(height: 16), // 버튼과 텍스트 사이의 여백
+            SizedBox(height: 10), // 버튼과 이미지 사이의 여백
             ElevatedButton(
               onPressed: () {
                 Navigator.push(

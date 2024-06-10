@@ -71,6 +71,7 @@ flutter:
     - assets/icons/help.png
     - assets/icons/logout.png
     - assets/icons/bar_chart.png
+    - assets/icons/daboa.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

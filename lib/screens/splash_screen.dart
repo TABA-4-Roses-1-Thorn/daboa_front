@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   @override
@@ -9,16 +8,16 @@ class SplashScreen extends StatelessWidget {
       body: Center(
         child: Column(
           children: [
-            Spacer(flex: 2),
-            Text(
-              'DABOA',
-              style: TextStyle(
-                fontSize: 65,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue[900], // 남색
-              ),
-            ),
             Spacer(flex: 1),
+            Image.asset(
+              'assets/icons/daboa.png', // 이미지 경로 설정
+              height: 300, // 이미지 높이 조정
+              width: 300,  // 이미지 너비 조정
+              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                return Text('Image not found');
+              },
+            ),
+            SizedBox(height: 1), // 이미지와 텍스트 사이의 간격 좁게 조정
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
@@ -47,7 +46,7 @@ class SplashScreen extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: 40),
+            SizedBox(height: 40), // 텍스트와 로고 사이의 간격
             Image.asset(
               'assets/logo.png',
               height: 150,
@@ -55,7 +54,7 @@ class SplashScreen extends StatelessWidget {
                 return Text('Image not found');
               },
             ),
-            Spacer(flex: 2),
+            SizedBox(height: 40), // 로고와 버튼 사이의 간격
             ElevatedButton(
               onPressed: () {
                 Navigator.pushReplacementNamed(context, '/login');
