@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "210369369455",
+    "project_id": "taba-alram",
+    "storage_bucket": "taba-alram.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:210369369455:android:d70e3aa375ef325308449a",
+        "android_client_info": {
+          "package_name": "com.example.tabaproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATuDmavGRzVKrVdyiOE6R5tb4wyJ3hEjc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

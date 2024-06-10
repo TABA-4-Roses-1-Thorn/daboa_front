@@ -5,12 +5,19 @@ class CustomTextField extends StatelessWidget {
   final String labelText;
   final bool isPassword;
   final Icon? prefixIcon; // prefixIcon 추가
+  final TextEditingController controller; // controller 추가
 
-  CustomTextField({required this.labelText, this.isPassword = false, this.prefixIcon});
+  CustomTextField({
+    required this.labelText,
+    this.isPassword = false,
+    this.prefixIcon,
+    required this.controller, // controller 추가
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller, // controller 추가
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: TextStyle(color: Colors.grey),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-import 'home_screen.dart';
+import '../controller/eventlog_controller.dart';
+import '../models/eventlog.dart';
 import 'cctv_view_screen.dart';
 import 'data_screen.dart';
+import 'home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -14,67 +15,183 @@ class _SearchScreenState extends State<SearchScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
   String? _selectedType;
+  List<EventLog> _dataList = [];
+  final EventLogController _controller = EventLogController();
+  bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _dataList = [
-    {'type': '무단 취침', 'time': '2024/04/20 00:32:14', 'state': 'check'},
-    {'type': '절도', 'time': '2024/04/21 00:32:14', 'state': 'loading'},
-    {'type': '이상 행동', 'time': '2024/04/22 00:32:14', 'state': 'check'},
-    {'type': '이상 행동', 'time': '2024/04/22 00:32:14', 'state': 'check'},
-    {'type': '무단 취침', 'time': '2024/03/22 13:50:14', 'state': 'loading'},
-    {'type': '절도', 'time': '2024/03/6 07:32:14', 'state': 'check'},
-    // 더 많은 예시 데이터 추가
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchEventLogs();
+  }
 
-  List<Map<String, dynamic>> get _filteredList {
+  Future<void> _fetchEventLogs() async {
+    try {
+      List<EventLog> logs = await _controller.fetchEventLogs();
+      setState(() {
+        _dataList = logs;
+        _isLoading = false;
+      });
+    } catch (e) {
+      // Handle error
+      print('Error fetching event logs: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<EventLog> get _filteredList {
     return _dataList.where((item) {
-      DateTime itemDate = DateFormat('yyyy/MM/dd HH:mm:ss').parse(item['time']);
+      DateTime itemDate = DateTime.parse(item.time);
       bool matchesDateRange = (_startDate == null || itemDate.isAfter(_startDate!)) &&
           (_endDate == null || itemDate.isBefore(_endDate!));
-      bool matchesType = _selectedType == null || _selectedType == '모든 타입' || item['type'] == _selectedType;
+      bool matchesType = _selectedType == null || _selectedType == '모든 타입' || item.type == _selectedType;
       return matchesDateRange && matchesType;
     }).toList();
   }
 
-  void _showDateTimeFilter(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _selectDateTime(BuildContext context) async {
+    DateTime initialDate = DateTime.now();
+    DateTime firstDate = DateTime(2020);
+    DateTime lastDate = DateTime(2101);
+    TimeOfDay initialTime = TimeOfDay.now();
+
+    DateTime? pickedDate = await showDatePicker(
       context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: DateTimeFilter(),
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+
+    if (pickedDate != null) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: initialTime,
+      );
+
+      if (pickedTime != null) {
+        DateTime selectedDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        setState(() {
+          _startDate = selectedDateTime;
+          _endDate = selectedDateTime.add(Duration(hours: 1)); // 예시로 1시간 후를 끝 날짜로 설정
+        });
+      }
+    }
+  }
+
+  void _showTypeAndDateFilter(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String? tempType = _selectedType;
+        DateTime? tempStartDate = _startDate;
+        DateTime? tempEndDate = _endDate;
+
+        return AlertDialog(
+          title: Text('필터 옵션'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  title: Text('시작 날짜'),
+                  subtitle: Text(tempStartDate != null
+                      ? DateFormat('yyyy/MM/dd').format(tempStartDate)
+                      : '선택되지 않음'),
+                  onTap: () async {
+                    DateTime? pickedDate = await _selectDate(context);
+                    if (pickedDate != null) {
+                      setState(() {
+                        tempStartDate = pickedDate;
+                      });
+                    }
+                  },
+                ),
+                ListTile(
+                  title: Text('끝 날짜'),
+                  subtitle: Text(tempEndDate != null
+                      ? DateFormat('yyyy/MM/dd').format(tempEndDate)
+                      : '선택되지 않음'),
+                  onTap: () async {
+                    DateTime? pickedDate = await _selectDate(context);
+                    if (pickedDate != null) {
+                      setState(() {
+                        tempEndDate = pickedDate;
+                      });
+                    }
+                  },
+                ),
+                ListTile(
+                  title: Text('유형'),
+                  subtitle: DropdownButton<String>(
+                    value: tempType,
+                    isExpanded: true,
+                    items: <String>['무단취침', '절도', '이상행동', '모든 타입']
+                        .map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        tempType = newValue;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text('취소'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('적용'),
+              onPressed: () {
+                setState(() {
+                  _selectedType = tempType;
+                  _startDate = tempStartDate;
+                  _endDate = tempEndDate;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
         );
       },
     );
   }
 
-  void _showTypeAndDateFilter(BuildContext context) {
-    showModalBottomSheet(
+  Future<DateTime?> _selectDate(BuildContext context) async {
+    DateTime initialDate = DateTime.now();
+    DateTime firstDate = DateTime(2020);
+    DateTime lastDate = DateTime(2101);
+
+    final DateTime? picked = await showDatePicker(
       context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TypeAndDateFilter(
-            onFilterChanged: (startDate, endDate, selectedType) {
-              setState(() {
-                _startDate = startDate;
-                _endDate = endDate;
-                _selectedType = selectedType;
-              });
-            },
-          ),
-        );
-      },
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
+    return picked;
+  }
+
+  String _formatDateTime(String dateTimeString) {
+    DateTime dateTime = DateTime.parse(dateTimeString);
+    return DateFormat('yyyy/MM/dd HH:mm:ss').format(dateTime);
   }
 
   @override
@@ -98,7 +215,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 IconButton(
                   icon: Icon(Icons.play_arrow, color: Colors.blue),
                   onPressed: () {
-                    _showDateTimeFilter(context); // Play button pressed
+                    _selectDateTime(context); // Play button pressed
                   },
                 ),
                 IconButton(
@@ -110,7 +227,9 @@ class _SearchScreenState extends State<SearchScreen> {
               ],
             ),
             SizedBox(height: 8),
-            Expanded(
+            _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : Expanded(
               child: Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -163,19 +282,15 @@ class _SearchScreenState extends State<SearchScreen> {
                         itemCount: _filteredList.length, // 필터된 데이터 수
                         itemBuilder: (context, index) {
                           var item = _filteredList[index];
-                          IconData stateIcon = item['state'] == 'check'
-                              ? Icons.check_circle
-                              : Icons.hourglass_empty;
-                          Color iconColor = item['state'] == 'check'
-                              ? Colors.black
-                              : Colors.black;
+                          IconData stateIcon = item.state ? Icons.check_circle : Icons.hourglass_empty;
+                          Color iconColor = item.state ? Colors.black : Colors.black;
                           return Column(
                             children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Expanded(flex: 2, child: Text(item['type'])),
-                                  Expanded(flex: 3, child: Text(item['time'])),
+                                  Expanded(flex: 2, child: Text(item.type)),
+                                  Expanded(flex: 3, child: Text(_formatDateTime(item.time))),
                                   Expanded(flex: 1, child: Icon(stateIcon, color: iconColor)),
                                   Expanded(
                                     flex: 2,
@@ -245,217 +360,6 @@ class _SearchScreenState extends State<SearchScreen> {
             );
           }
         },
-      ),
-    );
-  }
-}
-
-class DateTimeFilter extends StatefulWidget {
-  @override
-  _DateTimeFilterState createState() => _DateTimeFilterState();
-}
-
-class _DateTimeFilterState extends State<DateTimeFilter> {
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white, // 배경색 설정
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            title: Text("Select Date"),
-            trailing: Icon(Icons.keyboard_arrow_down),
-            onTap: () async {
-              DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: _selectedDate,
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2101),
-              );
-              if (pickedDate != null && pickedDate != _selectedDate) {
-                setState(() {
-                  _selectedDate = pickedDate;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: Text(DateFormat('MMMM dd, yyyy').format(_selectedDate)),
-          ),
-          ListTile(
-            title: Text("Select Time"),
-            trailing: Icon(Icons.keyboard_arrow_down),
-            onTap: () async {
-              TimeOfDay? pickedTime = await showTimePicker(
-                context: context,
-                initialTime: _selectedTime,
-              );
-              if (pickedTime != null && pickedTime != _selectedTime) {
-                setState(() {
-                  _selectedTime = pickedTime;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: Text(_selectedTime.format(context)),
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); // 필터링 값을 사용하고 싶으면 여기서 데이터를 전달하세요.
-            },
-            child: Text('확인'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16.0),
-              textStyle: TextStyle(fontSize: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-          ),
-          SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-}
-
-class TypeAndDateFilter extends StatefulWidget {
-  final Function(DateTime?, DateTime?, String?) onFilterChanged;
-
-  TypeAndDateFilter({required this.onFilterChanged});
-
-  @override
-  _TypeAndDateFilterState createState() => _TypeAndDateFilterState();
-}
-
-class _TypeAndDateFilterState extends State<TypeAndDateFilter> {
-  DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now();
-  String? _selectedType;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white, // 배경색 설정
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            title: Text("Select Start Date"),
-            trailing: Icon(Icons.keyboard_arrow_down),
-            onTap: () async {
-              DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: _startDate,
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2101),
-              );
-              if (pickedDate != null && pickedDate != _startDate) {
-                setState(() {
-                  _startDate = pickedDate;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: Text(DateFormat('MMMM dd, yyyy').format(_startDate)),
-          ),
-          ListTile(
-            title: Text("Select End Date"),
-            trailing: Icon(Icons.keyboard_arrow_down),
-            onTap: () async {
-              DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: _endDate,
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2101),
-              );
-              if (pickedDate != null && pickedDate != _endDate) {
-                setState(() {
-                  _endDate = pickedDate;
-                });
-              }
-            },
-          ),
-          ListTile(
-            title: Text(DateFormat('MMMM dd, yyyy').format(_endDate)),
-          ),
-          ListTile(
-            title: Text("Select Type"),
-            trailing: Icon(Icons.keyboard_arrow_down),
-            onTap: () async {
-              String? pickedType = await showDialog<String>(
-                context: context,
-                builder: (BuildContext context) {
-                  return SimpleDialog(
-                    title: Text('Select Type'),
-                    children: <Widget>[
-                      SimpleDialogOption(
-                        onPressed: () {
-                          Navigator.pop(context, '무단 취침');
-                        },
-                        child: Text('무단 취침'),
-                      ),
-                      SimpleDialogOption(
-                        onPressed: () {
-                          Navigator.pop(context, '절도');
-                        },
-                        child: Text('절도'),
-                      ),
-                      SimpleDialogOption(
-                        onPressed: () {
-                          Navigator.pop(context, '이상 행동');
-                        },
-                        child: Text('이상 행동'),
-                      ),
-                      SimpleDialogOption(
-                        onPressed: () {
-                          Navigator.pop(context, '모든 타입');
-                        },
-                        child: Text('모든 타입'),
-                      ),
-                    ],
-                  );
-                },
-              );
-              if (pickedType != null && pickedType != _selectedType) {
-                setState(() {
-                  _selectedType = pickedType;
-                });
-              }
-            },
-          ),
-          if (_selectedType != null)
-            ListTile(
-              title: Text('Selected Type: $_selectedType'),
-            ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              widget.onFilterChanged(_startDate, _endDate, _selectedType);
-              Navigator.pop(context);
-            },
-            child: Text('확인'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16.0),
-              textStyle: TextStyle(fontSize: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-          ),
-          SizedBox(height: 20),
-        ],
       ),
     );
   }

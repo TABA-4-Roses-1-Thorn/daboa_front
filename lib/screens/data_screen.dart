@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../controller/data_controller.dart';
 import 'search_screen.dart';
 import 'cctv_view_screen.dart';
 import 'home_screen.dart';
@@ -10,7 +11,57 @@ class DataScreen extends StatefulWidget {
 }
 
 class _DataScreenState extends State<DataScreen> {
+  final DataController _dataController = DataController();
   int _selectedIndex = 0;
+  Map<String, dynamic>? stats;
+  List<dynamic>? eventLog;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  void _fetchData() {
+    switch (_selectedIndex) {
+      case 0:
+        _dataController.getMonthlyStats().then((data) {
+          setState(() {
+            stats = data;
+          });
+        });
+        _dataController.getMonthlyEventLog().then((data) {
+          setState(() {
+            eventLog = data;
+          });
+        });
+        break;
+      case 1:
+        _dataController.getWeeklyStats().then((data) {
+          setState(() {
+            stats = data;
+          });
+        });
+        _dataController.getWeeklyEventLog().then((data) {
+          setState(() {
+            eventLog = data;
+          });
+        });
+        break;
+      case 2:
+        _dataController.getDailyStats().then((data) {
+          setState(() {
+            stats = data;
+          });
+        });
+        _dataController.getDailyEventLog().then((data) {
+          setState(() {
+            eventLog = data;
+          });
+        });
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +118,7 @@ class _DataScreenState extends State<DataScreen> {
               onPressed: (int index) {
                 setState(() {
                   _selectedIndex = index;
+                  _fetchData();
                 });
               },
               children: [
@@ -141,7 +193,9 @@ class _DataScreenState extends State<DataScreen> {
   }
 
   Widget _buildMonthView() {
-    return Column(
+    return stats == null || eventLog == null
+        ? Center(child: CircularProgressIndicator())
+        : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -155,38 +209,38 @@ class _DataScreenState extends State<DataScreen> {
         Row(
           children: [
             Text(
-              '21.3% ↓',
+              '${stats!['change']}% ${stats!['change'] > 0 ? '↑' : '↓'}',
               style: TextStyle(
-                color: Colors.blue,
+                color: stats!['change'] > 0 ? Colors.red : Colors.blue,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(width: 8),
             Text(
-              '지난 달보다 2건 줄었어요.',
+              '지난 달보다 ${stats!['current_month'] - stats!['previous_month']}건 ${stats!['current_month'] - stats!['previous_month'] > 0 ? '늘었어요' : '줄었어요'}.',
               style: TextStyle(color: Colors.grey),
             ),
           ],
         ),
         SizedBox(height: 16),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Column(
               children: [
                 Text('지난 달'),
                 Text(
-                  '15',
+                  '${stats!['previous_month']}',
                   style: TextStyle(fontSize: 24, color: Colors.grey),
                 ),
               ],
             ),
+            SizedBox(width: 32), // 여백 조정
             Column(
               children: [
                 Text('이번 달'),
                 Text(
-                  '12',
+                  '${stats!['current_month']}',
                   style: TextStyle(fontSize: 24, color: Colors.blue),
                 ),
               ],
@@ -206,13 +260,13 @@ class _DataScreenState extends State<DataScreen> {
           child: BarChart(
             BarChartData(
               alignment: BarChartAlignment.spaceAround,
-              barGroups: List.generate(12, (index) {
+              barGroups: List.generate(eventLog!.length, (index) {
                 return BarChartGroupData(
                   x: index,
                   barRods: [
                     BarChartRodData(
-                      y: index == 11 ? 15 : 12,
-                      colors: [index == 11 ? Colors.grey : Colors.grey[300]!],
+                      y: eventLog![index]['count'].toDouble(),
+                      colors: [Colors.grey],
                       width: 20,
                     ),
                   ],
@@ -224,7 +278,7 @@ class _DataScreenState extends State<DataScreen> {
                 bottomTitles: SideTitles(
                   showTitles: true,
                   getTitles: (double value) {
-                    return '${value.toInt() + 1}월';
+                    return '${eventLog![value.toInt()]['period']}';
                   },
                 ),
               ),
@@ -236,7 +290,9 @@ class _DataScreenState extends State<DataScreen> {
   }
 
   Widget _buildWeekView() {
-    return Column(
+    return stats == null || eventLog == null
+        ? Center(child: CircularProgressIndicator())
+        : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -250,39 +306,39 @@ class _DataScreenState extends State<DataScreen> {
         Row(
           children: [
             Text(
-              '21.3% ↑',
+              '${stats!['change']}% ${stats!['change'] > 0 ? '↑' : '↓'}',
               style: TextStyle(
-                color: Colors.red,
+                color: stats!['change'] > 0 ? Colors.red : Colors.blue,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(width: 8),
             Text(
-              '지난 주보다 2건 늘었어요.',
+              '지난 주보다 ${stats!['current_week'] - stats!['previous_week']}건 ${stats!['current_week'] - stats!['previous_week'] > 0 ? '늘었어요' : '줄었어요'}.',
               style: TextStyle(color: Colors.grey),
             ),
           ],
         ),
         SizedBox(height: 16),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Column(
               children: [
                 Text('지난 주'),
                 Text(
-                  '12',
+                  '${stats!['previous_week']}',
                   style: TextStyle(fontSize: 24, color: Colors.grey),
                 ),
               ],
             ),
+            SizedBox(width: 32), // 여백 조정
             Column(
               children: [
                 Text('이번 주'),
                 Text(
-                  '15',
-                  style: TextStyle(fontSize: 24, color: Colors.red),
+                  '${stats!['current_week']}',
+                  style: TextStyle(fontSize: 24, color: Colors.blue),
                 ),
               ],
             ),
@@ -301,13 +357,13 @@ class _DataScreenState extends State<DataScreen> {
           child: BarChart(
             BarChartData(
               alignment: BarChartAlignment.spaceAround,
-              barGroups: List.generate(5, (index) {
+              barGroups: List.generate(eventLog!.length, (index) {
                 return BarChartGroupData(
                   x: index,
                   barRods: [
                     BarChartRodData(
-                      y: index == 4 ? 15 : 12,
-                      colors: [index == 4 ? Colors.grey : Colors.grey[300]!],
+                      y: eventLog![index]['count'].toDouble(),
+                      colors: [Colors.grey],
                       width: 20,
                     ),
                   ],
@@ -319,7 +375,7 @@ class _DataScreenState extends State<DataScreen> {
                 bottomTitles: SideTitles(
                   showTitles: true,
                   getTitles: (double value) {
-                    return '주 ${value.toInt() + 1}';
+                    return '${eventLog![value.toInt()]['period']}';
                   },
                 ),
               ),
@@ -331,7 +387,9 @@ class _DataScreenState extends State<DataScreen> {
   }
 
   Widget _buildDayView() {
-    return Column(
+    return stats == null || eventLog == null
+        ? Center(child: CircularProgressIndicator())
+        : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -345,39 +403,39 @@ class _DataScreenState extends State<DataScreen> {
         Row(
           children: [
             Text(
-              '21.3% ↑',
+              '${stats!['change']}% ${stats!['change'] > 0 ? '↑' : '↓'}',
               style: TextStyle(
-                color: Colors.red,
+                color: stats!['change'] > 0 ? Colors.red : Colors.blue,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(width: 8),
             Text(
-              '어제보다 2건 늘었어요.',
+              '어제보다 ${stats!['current_day'] - stats!['previous_day']}건 ${stats!['current_day'] - stats!['previous_day'] > 0 ? '늘었어요' : '줄었어요'}.',
               style: TextStyle(color: Colors.grey),
             ),
           ],
         ),
         SizedBox(height: 16),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Column(
               children: [
                 Text('어제'),
                 Text(
-                  '12',
+                  '${stats!['previous_day']}',
                   style: TextStyle(fontSize: 24, color: Colors.grey),
                 ),
               ],
             ),
+            SizedBox(width: 32), // 여백 조정
             Column(
               children: [
                 Text('오늘'),
                 Text(
-                  '15',
-                  style: TextStyle(fontSize: 24, color: Colors.red),
+                  '${stats!['current_day']}',
+                  style: TextStyle(fontSize: 24, color: Colors.blue),
                 ),
               ],
             ),
@@ -396,13 +454,13 @@ class _DataScreenState extends State<DataScreen> {
           child: BarChart(
             BarChartData(
               alignment: BarChartAlignment.spaceAround,
-              barGroups: List.generate(7, (index) {
+              barGroups: List.generate(eventLog!.length, (index) {
                 return BarChartGroupData(
                   x: index,
                   barRods: [
                     BarChartRodData(
-                      y: index == 6 ? 15 : 12,
-                      colors: [index == 6 ? Colors.grey : Colors.grey[300]!],
+                      y: eventLog![index]['count'].toDouble(),
+                      colors: [Colors.grey],
                       width: 20,
                     ),
                   ],

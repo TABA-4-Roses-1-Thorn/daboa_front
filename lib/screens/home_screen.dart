@@ -1,3 +1,4 @@
+// screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'data_screen.dart';
 import 'settings_screen.dart';
@@ -50,7 +51,7 @@ class HomeScreen extends StatelessWidget {
               child: Text(
                 'DABOA',
                 style: TextStyle(
-                  fontSize: 40,
+                  fontSize: 50,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue[900], // 남색
                 ),

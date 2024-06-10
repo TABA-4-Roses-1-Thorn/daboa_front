@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import '../controller/audio_message_controller.dart';
+import '../models/audio_message.dart';
 
 class AIAudioMentSettingsScreen extends StatefulWidget {
   @override
@@ -7,9 +9,11 @@ class AIAudioMentSettingsScreen extends StatefulWidget {
 }
 
 class _AIAudioMentSettingsScreenState extends State<AIAudioMentSettingsScreen> {
+  List<AudioMessage> messages = [];
   List<bool> selected = [];
-  List<String> messages = [];
   List<TextEditingController> controllers = [];
+  final AudioMessageController controller = AudioMessageController();
+  final FlutterTts flutterTts = FlutterTts();
 
   @override
   void initState() {
@@ -18,68 +22,77 @@ class _AIAudioMentSettingsScreenState extends State<AIAudioMentSettingsScreen> {
   }
 
   void _loadMessages() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? savedMessages = prefs.getStringList('messages');
-    if (savedMessages != null) {
+    try {
+      List<AudioMessage> fetchedMessages = await controller.fetchMessages();
       setState(() {
-        messages = List<String>.from(savedMessages); // ensure it's growable
-        selected = List<bool>.filled(messages.length, false);
-        controllers = messages.map((msg) => TextEditingController(text: msg)).toList();
+        messages = List<AudioMessage>.from(fetchedMessages); // Ensure it's growable
+        selected = List<bool>.filled(messages.length, false, growable: true);
+        controllers = List<TextEditingController>.from(
+          fetchedMessages.map((msg) => TextEditingController(text: msg.content)),
+        );
       });
-    } else {
-      setState(() {
-        messages = [
-          '지금 즉시 나가주세요',
-          '지속적인 업무 방해시 경찰에 신고하겠습니다.',
-        ];
-        selected = List<bool>.filled(messages.length, false);
-        controllers = messages.map((msg) => TextEditingController(text: msg)).toList();
-      });
+    } catch (e) {
+      print(e);
     }
-  }
-
-  void _saveMessages() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('messages', messages);
   }
 
   void addMessage() {
     setState(() {
-      messages = List<String>.from(messages); // ensure it's growable
-      messages.add('새로운 멘트를 입력하세요');
-      selected = List<bool>.from(selected); // ensure it's growable
+      messages.add(AudioMessage(id: 0, content: '')); // ID는 백엔드에서 설정됨
       selected.add(false);
-      controllers = List<TextEditingController>.from(controllers); // ensure it's growable
-      controllers.add(TextEditingController(text: '새로운 멘트를 입력하세요'));
-      _saveMessages();
+      controllers.add(TextEditingController());
     });
   }
 
-  void removeSelectedMessages() {
-    setState(() {
-      List<int> indexesToRemove = [];
-      for (int i = 0; i < selected.length; i++) {
-        if (selected[i]) {
-          indexesToRemove.add(i);
+  void saveAllMessages() async {
+    for (int i = 0; i < messages.length; i++) {
+      String text = controllers[i].text;
+      messages[i].content = text;
+
+      try {
+        if (messages[i].id == 0) {
+          // 새로운 메시지 추가
+          AudioMessage addedMessage = await controller.addMessage(messages[i]);
+          setState(() {
+            messages[i] = addedMessage;
+          });
+        } else {
+          // 기존 메시지 업데이트
+          await controller.updateMessage(messages[i]);
+        }
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
+
+  void removeSelectedMessages() async {
+    for (int i = selected.length - 1; i >= 0; i--) {
+      if (selected[i]) {
+        try {
+          await controller.deleteMessage(messages[i].id);
+          setState(() {
+            messages.removeAt(i);
+            selected.removeAt(i);
+            controllers.removeAt(i);
+          });
+        } catch (e) {
+          print(e);
         }
       }
-      for (int i = indexesToRemove.length - 1; i >= 0; i--) {
-        int index = indexesToRemove[i];
-        messages = List<String>.from(messages); // ensure it's growable
-        messages.removeAt(index);
-        selected = List<bool>.from(selected); // ensure it's growable
-        selected.removeAt(index);
-        controllers = List<TextEditingController>.from(controllers); // ensure it's growable
-        controllers.removeAt(index);
-      }
-      _saveMessages();
-    });
+    }
   }
 
   void toggleSelected(int index) {
     setState(() {
       selected[index] = !selected[index];
     });
+  }
+
+  Future<void> speak(String text) async {
+    await flutterTts.setLanguage("ko-KR");
+    await flutterTts.setPitch(1.0);
+    await flutterTts.speak(text);
   }
 
   @override
@@ -144,14 +157,13 @@ class _AIAudioMentSettingsScreenState extends State<AIAudioMentSettingsScreen> {
                       decoration: InputDecoration(
                         hintText: "멘트를 입력하세요",
                       ),
-                      onChanged: (text) {
-                        setState(() {
-                          messages[index] = text;
-                          _saveMessages();
-                        });
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.volume_up),
+                      onPressed: () {
+                        speak(messages[index].content);
                       },
                     ),
-                    trailing: Icon(Icons.volume_up),
                   );
                 },
               ),
@@ -159,7 +171,7 @@ class _AIAudioMentSettingsScreenState extends State<AIAudioMentSettingsScreen> {
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                _saveMessages();
+                saveAllMessages();
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
