@@ -87,18 +87,9 @@ class _DataScreenState extends State<DataScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        '이상행동이 감지되었어요',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        '10건',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ],
+                  Text(
+                    '이상행동이 감지되었어요',
+                    style: TextStyle(color: Colors.red),
                   ),
                   IconButton(
                     icon: Icon(Icons.arrow_forward_ios, color: Colors.red),

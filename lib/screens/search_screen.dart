@@ -205,7 +205,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       backgroundColor: Colors.white,
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0), // 여기에 padding 값을 설정
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -298,9 +298,11 @@ class _SearchScreenState extends State<SearchScreen> {
                                       onPressed: () {},
                                       child: Text('click'),
                                       style: ElevatedButton.styleFrom(
-                                        minimumSize: Size(60, 30), // 버튼 크기 조절
+                                        minimumSize: Size(30, 30), // 버튼 크기 조절
                                         backgroundColor: Colors.blue,
                                         foregroundColor: Colors.white,
+                                        padding: EdgeInsets.symmetric(horizontal: 7.0), // 버튼 내부 여백 조정
+                                        textStyle: TextStyle(fontSize: 14), // 텍스트 크기 조정
                                       ),
                                     ),
                                   ),
