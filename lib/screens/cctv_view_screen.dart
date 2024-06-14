@@ -28,6 +28,7 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
   List<AudioMessage> aiMessages = [];
   Stream<List<int>>? _cctvStream;
   bool _isLoading = true;
+  bool _isUploading = false; // 업로드 상태를 관리하는 변수 추가
 
   @override
   void initState() {
@@ -136,6 +137,10 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
   }
 
   Future<void> _uploadVideo(File videoFile) async {
+    setState(() {
+      _isUploading = true; // 업로드 상태 시작
+    });
+
     final url = Uri.parse('${Config.baseUrl}/stream/upload');
     var request = http.MultipartRequest('POST', url);
     request.files.add(await http.MultipartFile.fromPath('file', videoFile.path));  // 'video' -> 'file'
@@ -158,6 +163,10 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error uploading video')),
       );
+    } finally {
+      setState(() {
+        _isUploading = false; // 업로드 상태 종료
+      });
     }
   }
 
@@ -180,133 +189,155 @@ class _CCTVViewScreenState extends State<CCTVViewScreen> {
         elevation: 1,
       ),
       backgroundColor: Colors.white,
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
+      body: Stack(
         children: [
-          // Expanded CCTV video section
-          Expanded(
-            child: Container(
-              margin: EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
+          _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Column(
+            children: [
+              // Expanded CCTV video section
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: Stack(
+                      children: [
+                        StreamBuilder<List<int>>(
+                          stream: _cctvStream,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(child: Text('Error: ${snapshot.error}'));
+                            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return Center(child: Text('No data'));
+                            } else {
+                              Uint8List bytes = Uint8List.fromList(snapshot.data!);
+                              try {
+                                return Image.memory(bytes, fit: BoxFit.cover);
+                              } catch (e) {
+                                return Center(child: Text('Invalid image data'));
+                              }
+                            }
+                          },
+                        ),
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            color: Colors.white,
+                            child: Text(
+                              '실시간 촬영중',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Information and mic icon section inside a box
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '준형이네 아이스크림 할인점',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: IconButton(
+                              icon: Icon(Icons.mic, color: Colors.blue),
+                              onPressed: () {
+                                _showVoiceTransmissionModal(context);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '1번 카메라',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+            ],
+          ),
+          if (_isUploading)
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    '분석중',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-                child: Stack(
-                  children: [
-                    StreamBuilder<List<int>>(
-                      stream: _cctvStream,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(child: Text('Error: ${snapshot.error}'));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text('No data'));
-                        } else {
-                          Uint8List bytes = Uint8List.fromList(snapshot.data!);
-                          try {
-                            return Image.memory(bytes, fit: BoxFit.cover);
-                          } catch (e) {
-                            return Center(child: Text('Invalid image data'));
-                          }
-                        }
-                      },
-                    ),
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        color: Colors.white,
-                        child: Text(
-                          '실시간 촬영중',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
-          ),
-          // Information and mic icon section inside a box
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            margin: const EdgeInsets.symmetric(horizontal: 16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '준형이네 아이스크림 할인점',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: IconButton(
-                          icon: Icon(Icons.mic, color: Colors.blue),
-                          onPressed: () {
-                            _showVoiceTransmissionModal(context);
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  '1번 카메라',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 16),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
