@@ -39,6 +39,7 @@ dependencies:
   file_picker: ^5.0.0
   flutter_tts: ^3.3.2
   flutter_dotenv: ^5.0.2 # 최신 버전 확인 후 업데이트
+  url_launcher: ^6.0.20
 
 
 

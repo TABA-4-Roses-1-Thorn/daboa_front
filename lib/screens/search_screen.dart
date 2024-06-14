@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io' show Platform; // 플랫폼 확인을 위해 추가
+
 import '../controller/eventlog_controller.dart';
 import '../models/eventlog.dart';
 import 'cctv_view_screen.dart';
@@ -33,7 +36,6 @@ class _SearchScreenState extends State<SearchScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      // Handle error
       print('Error fetching event logs: $e');
       setState(() {
         _isLoading = false;
@@ -194,6 +196,19 @@ class _SearchScreenState extends State<SearchScreen> {
     return DateFormat('yyyy/MM/dd HH:mm:ss').format(dateTime);
   }
 
+  Future<void> _launchURL(String url) async {
+    try {
+      String decodedUrl = Uri.decodeFull(url); // URL 디코딩
+      await launch(
+        decodedUrl,
+        forceSafariVC: !Platform.isAndroid,
+        forceWebView: false,
+      );
+    } catch (e) {
+      print('Error launching URL: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -295,7 +310,17 @@ class _SearchScreenState extends State<SearchScreen> {
                                   Expanded(
                                     flex: 2,
                                     child: ElevatedButton(
-                                      onPressed: () {},
+                                      onPressed: () async {
+                                        if (item.video.isNotEmpty) {
+                                          try {
+                                            await _launchURL(item.video); // URL로 이동
+                                          } catch (e) {
+                                            print('Error launching URL: $e');
+                                          }
+                                        } else {
+                                          print('No URL available');
+                                        }
+                                      },
                                       child: Text('click'),
                                       style: ElevatedButton.styleFrom(
                                         minimumSize: Size(30, 30), // 버튼 크기 조절
