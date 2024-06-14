@@ -31,6 +31,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _fetchEventLogs() async {
     try {
       List<EventLog> logs = await _controller.fetchEventLogs();
+      logs.sort((a, b) => DateTime.parse(a.time).compareTo(DateTime.parse(b.time))); // 시간순 정렬
       setState(() {
         _dataList = logs;
         _isLoading = false;
