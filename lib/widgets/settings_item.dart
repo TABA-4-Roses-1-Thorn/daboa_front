@@ -16,8 +16,8 @@ class CustomButton extends StatelessWidget {
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
       style: ElevatedButton.styleFrom(
-        primary: Colors.blue, // 버튼 배경색
-        onPrimary: Colors.white, // 텍스트 색상
+        backgroundColor: Colors.blue, // 버튼 배경색
+        foregroundColor: Colors.white, // 텍스트 색상
         padding: EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
