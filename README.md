@@ -6,7 +6,7 @@
 
 # System Architecture
 ## 🛠️ System Architecture
-<img src="https://github.com/user-attachments/assets/cdee9db6-982e-4564-adcb-3c5785d9c5f5" width="800" height="600"/>
+<img src="https://github.com/user-attachments/assets/cdee9db6-982e-4564-adcb-3c5785d9c5f5" width="800" height="700"/>
 </div>
 
 # ERD
