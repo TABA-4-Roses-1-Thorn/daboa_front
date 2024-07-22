@@ -6,10 +6,10 @@
 
 # System Architecture
 ## 🛠️ System Architecture
-<img src="https://github.com/user-attachments/assets/cdee9db6-982e-4564-adcb-3c5785d9c5f5" width="700" height="400"/>
+<img src="https://github.com/user-attachments/assets/cdee9db6-982e-4564-adcb-3c5785d9c5f5" width="800" height="600"/>
 </div>
 
 # ERD
 ## 🛠️ ERD
-<img src="https://github.com/user-attachments/assets/37e74be4-ba5f-4ca2-8add-c2e895e537e9" width="700" height="400"/>
+<img src="https://github.com/user-attachments/assets/37e74be4-ba5f-4ca2-8add-c2e895e537e9" width="800" height="500"/>
 </div>
