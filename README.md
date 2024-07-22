@@ -9,6 +9,12 @@
 ![project_service_architecture drawio](https://github.com/user-attachments/assets/cdee9db6-982e-4564-adcb-3c5785d9c5f5)
 </div>
 
-ERD
-
+# ERD
+## 🛠️ ERD
 ![Daboa ERD](https://github.com/user-attachments/assets/37e74be4-ba5f-4ca2-8add-c2e895e537e9)
+</div>
+
+
+<img src="https://github.com/user-attachments/assets/cdee9db6-982e-4564-adcb-3c5785d9c5f5" width="200" height="400"/>
+
+
